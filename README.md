@@ -1,3 +1,48 @@
+# Setting Up PostgreSQL with Vagrant and Ansible
+
+This project provides a setup for PostgreSQL using Vagrant and Ansible. Follow the instructions below to clone the repository and set up your environment.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Git**: To clone the repository.
+- **Vagrant**: For creating and managing virtual development environments.
+- **VirtualBox**: As a provider for Vagrant.
+- **Ansible**: For automated configuration management.
+
+## Installation Steps
+
+### 1. Install Git
+
+- **Windows**: Download and install from [Git for Windows](https://gitforwindows.org/).
+- **macOS**: Install using Homebrew with `brew install git`, or download from [Git for macOS](https://git-scm.com/download/mac).
+- **Linux (Ubuntu/Debian)**: Install using `sudo apt-get install git`.
+
+### 2. Install VirtualBox
+
+Download and install VirtualBox from [VirtualBox Downloads](https://www.virtualbox.org/wiki/Downloads).
+
+### 3. Install Vagrant
+
+Download and install Vagrant from [Vagrant Downloads](https://www.vagrantup.com/downloads).
+
+### 4. Install Ansible
+
+- **macOS/Linux**:
+  - Install using Homebrew (macOS) with `brew install ansible`, or
+  - For Linux, use `sudo apt-get install ansible` (Ubuntu/Debian).
+- **Windows**: Windows support is more complex, see [Installing Ansible on Windows](https://docs.ansible.com/ansible/latest/user_guide/windows_faq.html) for details.
+
+## Cloning the Repository
+
+Run the following command to clone the repository:
+
+```bash
+git clone https://github.com/armeldemarsac92/psql-setup-with-VAGRANT-and-ANSIBLE.git
+cd psql-setup-with-VAGRANT-and-ANSIBLE
+
+
 # PostgreSQL 13 Master-Standby Streaming Replication
 
 PostgreSQL has various types of replication available and it could be a little bit confusing to figure out what has to be done to just configure a simple master-standby replicated database setup. 
