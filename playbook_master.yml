@@ -1,0 +1,172 @@
+---
+- name: Install and Configure PostgreSQL
+  hosts: all
+  become: yes  
+
+  vars:
+    postgres_version: "13"  
+    postgres_db: "nsapoold07" 
+    postgres_table: "user"  
+    postgres_default_user: "postgres"
+    postgres_new_user: "nsapool"  
+    postgres_replication_user: "repluser"
+    postgres_password: "marvin4242"
+    primary_node_ip: 192.168.56.10
+    secondary_node_ip: 192.168.56.11
+    postgres_data_dir: /var/lib/postgresql/{{ postgres_version }}/main
+
+  tasks:
+    - name: Create user marvin
+      user:
+        name: marvin
+        shell: "/bin/bash"
+        create_home: yes
+        password: "$6$bpt/oR05PTIJiVcF$WjPCL13AvpyjLvFTgzmMU1zUNGtb3vgzuXPSI.Bfai.oGPXdzTq7VKwnHRQoqzUV8H6HLtpqa6qpPyePsvk831"
+
+    - name: Update apt repositories
+      apt:
+        update_cache: yes
+
+    - name: Install PostgreSQL and dependencies
+      apt:
+        name: postgresql, python3-psycopg2
+        state: present
+      when: ansible_os_family == 'Debian'
+
+    - name: Add marvin to the postgres group
+      user:
+        name: marvin
+        groups: postgres
+        append: yes 
+
+    - name: Ensure PostgreSQL is running
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Change the PostgreSQL default user password
+      become_user: postgres
+      postgresql_user:
+        name: "{{ postgres_default_user }}"
+        password: "{{ postgres_password }}"
+      no_log: false
+
+    - name: Set role attributes for the PostgreSQL default user
+      become_user: postgres
+      postgresql_user:
+        name: "{{ postgres_default_user }}"
+        role_attr_flags: SUPERUSER,CREATEDB
+
+    - name: Create a new user
+      become_user: postgres
+      postgresql_user:
+        name: "{{ postgres_new_user }}"
+        password: "{{ postgres_password }}"
+        encrypted: yes
+        role_attr_flags: CREATEDB
+      no_log: false
+
+    - name: Create replication user
+      become_user: postgres
+      postgresql_user:
+        name: "{{ postgres_replication_user }}"
+        password: "{{ postgres_password }}"
+        encrypted: yes
+        role_attr_flags: REPLICATION
+
+    - name: Allow md5 connection for the db user
+      community.postgresql.postgresql_pg_hba:
+        dest: "/etc/postgresql/{{ postgres_version }}/main/pg_hba.conf"
+        contype: host
+        databases: all
+        method: md5
+        users: "{{ postgres_new_user }}"
+        create: true
+      become: true
+      become_user: postgres
+      notify: restart postgresql
+
+    - name: Create a new database
+      become: yes
+      become_user: postgres
+      postgresql_db:
+        name: "{{ postgres_db }}"
+        owner: "{{ postgres_new_user }}"
+
+    - name: Create a new schema in the PostgreSQL database
+      become: yes
+      become_user: postgres
+      postgresql_schema:
+        name: nsapoold07_schema
+        database: "{{ postgres_db }}"
+        state: present
+
+    - name: Drop existing 'user' table if it exists
+      become: yes
+      become_user: postgres
+      postgresql_query:
+        db: "{{ postgres_db }}"
+        query: "DROP TABLE IF EXISTS nsapoold07_schema.user CASCADE;"
+
+
+    - name: Create a new 'user' table in a specific schema
+      become: yes
+      become_user: postgres
+      postgresql_query:
+        db: "{{ postgres_db }}"
+        query: |
+          CREATE TABLE nsapoold07_schema.user (
+            id SERIAL PRIMARY KEY,
+            email VARCHAR(255),
+            nickname VARCHAR(255)
+          );
+
+    - name: Insert a row into the user table
+      become_user: postgres
+      postgresql_query:
+        db: "{{postgres_db}}"
+        login_user: "{{ postgres_default_user }}"
+        query: "INSERT INTO nsapoold07_schema.user (email, nickname) VALUES ('marvin@epitech.eu', 'marvin42');"
+
+    - name: Create replication slot
+      become: yes
+      become_user: postgres
+      postgresql_query:
+        db: "{{ postgres_db }}"
+        query: SELECT * FROM pg_create_physical_replication_slot('repl_slot');
+
+    - name: Allow replication connections in pg_hba.conf
+      lineinfile:
+        path: /etc/postgresql/{{ postgres_version }}/main/pg_hba.conf
+        line: "host    replication    {{ postgres_replication_user }}    {{ secondary_node_ip }}/32    md5"
+        create: yes
+      notify: restart postgresql
+
+    - name: Update postgresql.conf for replication
+      become: yes
+      blockinfile:
+        path: /etc/postgresql/13/main/postgresql.conf
+        block: |
+          listen_addresses = '*'
+          max_wal_senders = 10
+          wal_level = replica
+          wal_log_hints = on
+          wal_keep_size = 512
+          max_replication_slots = 10
+          hot_standby = on
+
+          primary_conninfo = 'user=repluser host={{ primary_node_ip }} port=5432 sslmode=prefer sslcompression=1'
+          primary_slot_name = 'repl_slot'
+
+          synchronous_commit = on
+          synchronous_standby_names = '*'
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+      notify: restart postgresql
+
+  handlers:
+    - name: restart postgresql
+      service:
+        name: postgresql
+        state: restarted
+
