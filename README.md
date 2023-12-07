@@ -47,6 +47,8 @@ cd psql-setup-with-VAGRANT-and-ANSIBLE
 
 # PostgreSQL 13 Master-Standby Streaming Replication
 
+This tutorial is from https://gist.github.com/kpirliyev/c840e32df1619ab5875911286521c75b
+
 PostgreSQL has various types of replication available and it could be a little bit confusing to figure out what has to be done to just configure a simple master-standby replicated database setup. 
 Digging my way through documentation I decided to write my own little guide on how to setup simple replication in PostgreSQL 13. 
 
