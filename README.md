@@ -41,7 +41,14 @@ Run the following command to clone the repository:
 ```
 git clone https://github.com/armeldemarsac92/psql-setup-with-VAGRANT-and-ANSIBLE.git
 cd psql-setup-with-VAGRANT-and-ANSIBLE
+```
 
+## Launching the auto configuration of the vms
+
+Once you've installed all the above dependencies, just go to the repo folder on your machine and run :
+
+```
+vagrant up
 ```
 
 
