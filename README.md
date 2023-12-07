@@ -41,6 +41,7 @@ Run the following command to clone the repository:
 ```
 git clone https://github.com/armeldemarsac92/psql-setup-with-VAGRANT-and-ANSIBLE.git
 cd psql-setup-with-VAGRANT-and-ANSIBLE
+
 ```
 
 
