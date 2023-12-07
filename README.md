@@ -38,9 +38,10 @@ Download and install Vagrant from [Vagrant Downloads](https://www.vagrantup.com/
 
 Run the following command to clone the repository:
 
-```bash
+```
 git clone https://github.com/armeldemarsac92/psql-setup-with-VAGRANT-and-ANSIBLE.git
-cd psql-setup-with-VAGRANT-and-ANSIBLE```
+cd psql-setup-with-VAGRANT-and-ANSIBLE
+```
 
 
 # PostgreSQL 13 Master-Standby Streaming Replication
